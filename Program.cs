@@ -5,7 +5,7 @@ using Discord.WebSocket;
 
 using BotConfig;
 
-namespace COO
+namespace stockBot
 {
     public class Program
     {
