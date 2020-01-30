@@ -5,6 +5,8 @@ using Logger.Adapter;
 using Discord;
 namespace Logger.Adapter.Handler
 {
+    //Class is a handler for LoggingService that captures Discord.net's LogMessages and
+    //Reformats them to fit the IStandardLog Interface.
     public class DiscordLogMessageHandler
     {
         private LoggerService _log;

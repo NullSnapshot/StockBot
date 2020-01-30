@@ -4,7 +4,8 @@ using Logger;
 
 namespace Logger.Adapter
 {
-    public class DiscordLogMessageAdapter : IStandardLog
+    //Struct for holding converted Discord Log Messages.
+    public struct DiscordLogMessageAdapter : IStandardLog
     {
         public LogSeverity Severity { private set; get; }
         public string Source { private set; get; }
@@ -17,6 +18,7 @@ namespace Logger.Adapter
             Source = message.Source;
             Message = message.Message;
             Exception = message.Exception;
+            Discord.LogMessage message2 = new Discord.LogMessage()
         }
     }
 }
