@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Logger.Adapter;
+using Logger;
 
 using BotConfig;
 
@@ -21,12 +23,14 @@ namespace stockBot
         private readonly CommandService _commands;
         private readonly IServiceProvider _services;
 
+        private readonly LoggerService _log;
+
         private Program()
         {
             _client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 // How much logging do you want to see?
-                LogLevel = LogSeverity.Info,
+                LogLevel = Discord.LogSeverity.Info,
 
                 // If you or another service needs to do anything with messages
                 // (eg. checking Reactions, checking the content of edited/deleted messages),
@@ -36,12 +40,20 @@ namespace stockBot
 
             _commands = new CommandService(new CommandServiceConfig
             {
-                LogLevel = LogSeverity.Info,
+                LogLevel = Discord.LogSeverity.Info,
                 CaseSensitiveCommands = false,
             });
 
-            _client.Log += Log;
-            _commands.Log += Log;
+            _log = new LoggerService();
+
+            //subscribe discord logs to our log service.
+            _client.Log += _log.DiscordHandler.Log;
+            _commands.Log += _log.DiscordHandler.Log;
+
+            Config.Log += _log.StandardLog;
+
+            Config.Initialize();
+
         }
 
         // If any services require the client, or the CommandService, or something else you keep on hand,
@@ -58,32 +70,6 @@ namespace stockBot
             // Tip: There's an overload taking in a 'validateScopes' bool to make sure
             // you haven't made any mistakes in your dependency graph.
             return map.BuildServiceProvider();
-        }
-
-        //Main program logging handler.
-        private static Task Log(LogMessage message)
-        {
-            switch (message.Severity)
-            {
-                case LogSeverity.Critical:
-                case LogSeverity.Error:
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    break;
-                case LogSeverity.Warning:
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    break;
-                case LogSeverity.Info:
-                    Console.ForegroundColor = ConsoleColor.White;
-                    break;
-                case LogSeverity.Verbose:
-                case LogSeverity.Debug:
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                    break;
-            }
-            Console.WriteLine($"{DateTime.Now,-19} [{message.Severity,8}] {message.Source}: {message.Message} {message.Exception}");
-            Console.ResetColor();
-
-            return Task.CompletedTask;
         }
 
         private async Task MainAsync()

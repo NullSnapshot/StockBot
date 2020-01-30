@@ -1,9 +1,12 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 using System.Collections.Generic;
 using YamlDotNet;
+using Logger;
+
 
 
 namespace BotConfig
@@ -21,7 +24,7 @@ namespace BotConfig
         public static string BotToken { get; private set; } = "";
         public static char CommandPrefix { get; private set; } = '!';
 
-        static Config()
+        public static bool Initialize()
         {
             configFile = new FileStream(CONFIG_FILEPATH, FileMode.OpenOrCreate, FileAccess.ReadWrite);
 
@@ -40,11 +43,12 @@ namespace BotConfig
                 sr.Close();
                 if (fileBuildNeeded)
                 {
-                    Console.WriteLine("Building new config file");
+                    Log?.Invoke(new StandardLog(LogSeverity.Info, "Config", "Building new config file."));
                     WriteFile();
                 }
             }
             configFile.Close();
+            return true;
         }
 
         private static string Serialize()
@@ -77,24 +81,24 @@ namespace BotConfig
 
             if (configInvalid) //config file does not contain version param.
             {
-                Console.WriteLine($@"Config file does not specify version.
-                    Expected Version: {ConfigVersion}");
+                Log?.Invoke(new StandardLog(LogSeverity.Warning, "Config", $"Config file does not specify version. " +
+                 $"Expected Version: {ConfigVersion}"));
             }
             else //config file contains version param. Attempt to validate latest version.
             {
                 configInvalid |= !Int32.TryParse(tempversionString, out tempConfigVersion);
                 if (configInvalid)
                 {
-                    Console.WriteLine($@"Unable to parse config file version.
-                        Expected Version: {ConfigVersion}");
+                    Log?.Invoke(new StandardLog(LogSeverity.Warning, "Config", "Unable to parse config file version. " +
+                        $"Expected Version: {ConfigVersion}"));
                 }
             }
             if (tempConfigVersion < ConfigVersion) //file out of date.
             {
                 configInvalid = true;
-                Console.WriteLine($@"Config File Version out of Date. 
-                    Current Version: {tempConfigVersion} | 
-                    Expected Version: {ConfigVersion}");
+                Log?.Invoke(new StandardLog(LogSeverity.Warning, "Config", $"Config File Version out of Date. " +
+                    $"Current Version: {tempConfigVersion} | " +
+                    $"Expected Version: {ConfigVersion}"));
             }
 
             if (!validateFilePair(configs, "BotToken")) configInvalid = true;
@@ -126,5 +130,7 @@ namespace BotConfig
             if (String.IsNullOrEmpty(keyValue)) return false;
             return valid;
         }
+
+        public static event Func<StandardLog, Task> Log;
     }
 }
