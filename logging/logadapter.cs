@@ -18,7 +18,6 @@ namespace Logger.Adapter
             Source = message.Source;
             Message = message.Message;
             Exception = message.Exception;
-            Discord.LogMessage message2 = new Discord.LogMessage()
         }
     }
 }
