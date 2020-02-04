@@ -9,7 +9,7 @@ using Logger;
 
 
 
-namespace BotConfig
+namespace StockBot.Configuration
 {
     public static class Config
     {
