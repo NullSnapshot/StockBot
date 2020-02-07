@@ -31,6 +31,7 @@ namespace StockBot.Configuration
             //empty file
             if (configFile.Length == 0)
             {
+                configFile.Close();
                 WriteFile();
             }
             //read file
