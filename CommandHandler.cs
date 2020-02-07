@@ -12,26 +12,35 @@ namespace StockBot
 {
     public class CommandHandler
     {
-        private readonly DiscordSocketClient _client;
-        private readonly CommandService _commands;
-        private readonly IServiceProvider _services;
+        public DiscordSocketClient Client { get; private set; }
+        public CommandService Commands { get; private set; }
+        public IServiceProvider Services { get; set; }
 
         public CommandHandler(DiscordSocketClient client, CommandService commands, IServiceProvider services)
         {
-            _client = client;
-            _commands = commands;
-            _services = services;
+            Client = client;
+            Commands = commands;
+            Services = services;
+
+            Initialize();
         }
 
-        public async Task InitializeAsync()
+        public CommandHandler(DiscordSocketClient client, CommandService commands)
+        {
+            Client = client;
+            Commands = commands;
+
+        }
+
+        public void Initialize()
         {
             // Pass the service provider to the second parameter of
             // AddModulesAsync to inject dependencies to all modules 
             // that may require them.
-            await _commands.AddModulesAsync(
+            Commands.AddModulesAsync(
                 assembly: Assembly.GetEntryAssembly(),
-                services: _services);
-            _client.MessageReceived += HandleCommandAsync;
+                services: Services);
+            Client.MessageReceived += HandleCommandAsync;
         }
 
         public async Task HandleCommandAsync(SocketMessage arg)
@@ -41,24 +50,24 @@ namespace StockBot
             if (msg == null) return;
 
             // We don't want the bot to respond to itself or other bots.
-            if (msg.Author.Id == _client.CurrentUser.Id || msg.Author.IsBot) return;
+            if (msg.Author.Id == Client.CurrentUser.Id || msg.Author.IsBot) return;
 
             // Create a number to track where the prefix ends and the command begins
             int argPos = 0;
 
             //bot responds to command prefix or direct mention
-            if (msg.HasCharPrefix(Config.CommandPrefix, ref argPos) || msg.HasMentionPrefix(_client.CurrentUser, ref pos))
+            if (msg.HasCharPrefix(Config.CommandPrefix, ref argPos) || msg.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
                 // Create a Command Context.
-                var context = new SocketCommandContext(_client, msg);
+                var context = new SocketCommandContext(Client, msg);
 
                 // ...
                 // Pass the service provider to the ExecuteAsync method for
                 // precondition checks.
-                await _commands.ExecuteAsync(
+                await Commands.ExecuteAsync(
                     context: context,
                     argPos: argPos,
-                    services: _services);
+                    services: Services);
                 // ...
 
                 // Uncomment the following lines if you want the bot
@@ -72,3 +81,4 @@ namespace StockBot
             }
         }
     }
+}

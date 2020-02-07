@@ -22,9 +22,9 @@ namespace StockBot
 
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
+        private readonly CommandHandler _commandHandler;
         private readonly Initialize _initializer;
         private readonly LoggerService _log;
-
         private readonly IServiceProvider _services;
 
         private Program()
@@ -56,9 +56,14 @@ namespace StockBot
 
             Config.Initialize();
 
-            _initializer = new Initialize(_commands, _client, _log);
+            _commandHandler = new CommandHandler(_client, _commands);
+
+            _initializer = new Initialize(_commands, _client, _commandHandler, _log);
 
             _services = _initializer.BuildServiceProvider();
+
+            _commandHandler.Services = _services;
+            _commandHandler.Initialize();
 
         }
 
