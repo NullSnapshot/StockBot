@@ -76,6 +76,8 @@ namespace StockBot
             await _client.LoginAsync(TokenType.Bot, Config.BotToken);
             await _client.StartAsync();
 
+            await _client.SetGameAsync("mention or !help", type: ActivityType.Listening);
+
             // Wait infinitely so the bot actually stays connected.
             await Task.Delay(Timeout.Infinite);
         }
